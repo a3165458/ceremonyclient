@@ -61,5 +61,5 @@ while true; do
         start_process
     fi
 
-    sleep 60
+    sleep 43200
 done
