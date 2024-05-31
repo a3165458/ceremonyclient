@@ -3,12 +3,20 @@
 start_process() {
     version=$(cat config/version.go | grep -A 1 "func GetVersion() \[\]byte {" | grep -Eo '0x[0-9a-fA-F]+' | xargs printf "%d.%d.%d")
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if ! which cpulimit; then
+            echo "cpulimit not installed, please install it before running the node"
+            exit 1
+        fi
         if [[ $(uname -m) == "aarch64"* ]]; then
             ./node-$version-linux-arm64 &
             main_process_id=$!
+            sleep 20
+            ps -eo pid,args | grep "node-$version-linux-arm64 --core" | grep -v grep | gawk '{print $1}' | xargs -L 1 cpulimit -l 50 -z -b -p
         else
             ./node-$version-linux-amd64 &
             main_process_id=$!
+            sleep 20
+            ps -eo pid,args | grep "node-$version-linux-amd64 --core" | grep -v grep | gawk '{print $1}' | xargs -L 1 cpulimit -l 50 -z -b -p
         fi
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         ./node-$version-darwin-arm64 &
